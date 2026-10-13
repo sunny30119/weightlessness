@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>失重實驗室：失重不是沒有重力（番外篇）</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+    body { font-family: 'Noto Sans TC', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    html { scroll-behavior: smooth; }
+    .sim-canvas {
+      background: radial-gradient(circle at 50% 30%, #0f172a 0%, #020617 100%);
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+      border-radius: 0.875rem;
+      width: 100%; height: auto; display: block;
+      touch-action: manipulation;
+    }
+    .mjx-chtml { font-size: 108% !important; }
+
+    /* 統一按鈕 */
+    .btn { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem 1rem; border-radius:.75rem;
+           font-size:.875rem; font-weight:700; border:1px solid #334155; background:#1e293b; color:#e2e8f0;
+           transition: all .15s; cursor:pointer; user-select:none; }
+    .btn:hover:not(:disabled) { background:#334155; }
+    .btn:active:not(:disabled) { transform: scale(.96); }
+    .btn:disabled { opacity:.35; cursor:not-allowed; }
+    .btn-go { background:#4f46e5; border-color:#6366f1; color:#fff; }
+    .btn-go:hover:not(:disabled) { background:#6366f1; }
+    .btn-red { background:#b91c1c; border-color:#ef4444; color:#fff; }
+    .btn-red:hover:not(:disabled) { background:#dc2626; }
+    .btn.sel { background:#4338ca; border-color:#a5b4fc; color:#fff; box-shadow:0 0 0 2px #a5b4fc55; }
+    .btn.right { background:#065f46; border-color:#34d399; color:#fff; }
+    .btn.wrong { background:#7f1d1d; border-color:#f87171; color:#fff; }
+
+    /* 三層深度 */
+    .layer { border-radius: 1rem; padding: 1rem 1.25rem; border: 1px solid; font-size: .95rem; line-height: 1.8; }
+    .layer-tag { display:inline-block; font-size:.75rem; font-weight:800; padding:.15rem .6rem; border-radius:999px; margin-bottom:.4rem; }
+    .l1 { background: #0c1a2e; border-color:#1e3a5f; }
+    .l1 .layer-tag { background:#0ea5e933; color:#7dd3fc; }
+    .l2 { background: #1a1530; border-color:#3b2f63; }
+    .l2 .layer-tag { background:#a855f733; color:#d8b4fe; }
+    details.l3 { background: #1c1408; border-color:#5c4210; }
+    details.l3 > summary { cursor:pointer; font-weight:800; color:#fbbf24; list-style:none; }
+    details.l3 > summary::-webkit-details-marker { display:none; }
+    details.l3 > summary::before { content:'▸ '; }
+    details.l3[open] > summary::before { content:'▾ '; }
+    details.l3 .inner { margin-top:.75rem; overflow-x:auto; }
+    .takeaway { border-radius: 1rem; padding: .9rem 1.25rem; background: linear-gradient(90deg,#064e3b55,#0f172a);
+                border:1px solid #065f46; color:#a7f3d0; font-weight:700; }
+
+    .caption { min-height: 3.2rem; padding:.7rem 1rem; border-radius:.75rem; background:#0f172a; border:1px solid #1e293b;
+               color:#e2e8f0; font-size:.95rem; line-height:1.6; }
+    .chip { display:inline-block; padding:0 .45rem; border-radius:.4rem; cursor:pointer; border:1px dashed #fbbf24; color:#fde68a; }
+    .chip:hover { background:#fbbf2422; }
+    .glow { box-shadow: 0 0 0 3px #fbbf24, 0 0 18px #fbbf24aa !important; border-radius:.75rem; }
+    input[type=range] { accent-color:#818cf8; width:100%; }
+    .qa summary { cursor:pointer; font-weight:700; color:#e2e8f0; }
+    .station-num { width:2.75rem; height:2.75rem; border-radius:.9rem; display:flex; align-items:center; justify-content:center;
+                   font-weight:900; font-size:1.15rem; border:1px solid; flex-shrink:0; }
+    .legend-dot { display:inline-block; width:.8rem; height:.8rem; border-radius:3px; vertical-align:middle; margin-right:.25rem; }
+    table.rec td, table.rec th { padding:.3rem .6rem; border-bottom:1px solid #1e293b; text-align:center; }
+    @media print { header, .btn, input[type=range] { display:none !important; } details.l3 { display:block; } }
+    .card { background:#0f172a; border:1px solid #1e293b; border-radius:1.25rem; padding:1rem; }
+    @media (min-width:640px) { .card { padding:1.5rem; } }
+    #cv-scale { touch-action: none; cursor: grab; }
+    table.cmp td, table.cmp th { padding:.6rem .75rem; border-bottom:1px solid #1e293b; vertical-align:top; text-align:left; }
+    table.cmp th { color:#e2e8f0; }
+    mjx-container[display="true"] { overflow-x:auto; overflow-y:hidden; max-width:100%; }
+    .core { border-radius:1rem; padding:1rem 1.25rem; background:linear-gradient(90deg,#3b076455,#0f172a); border:1px solid #7e22ce; color:#f5d0fe; font-weight:800; font-size:1.05rem; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white pb-24 overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <i data-lucide="arrow-down-to-line" class="w-6 h-6 text-fuchsia-400 shrink-0"></i>
+        <span class="font-bold tracking-wider truncate bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-400 via-purple-300 to-sky-400">失重實驗室</span>
+      </div>
+      <nav class="hidden lg:flex items-center gap-4 text-sm font-medium text-slate-300">
+        <a href="#s0" class="hover:text-fuchsia-400">0 預測</a>
+        <a href="#s1" class="hover:text-fuchsia-400">1 體重計</a>
+        <a href="#s2" class="hover:text-fuchsia-400">2 電梯</a>
+        <a href="#s3" class="hover:text-fuchsia-400">3 感覺</a>
+        <a href="#s4" class="hover:text-fuchsia-400">4 名詞</a>
+        <a href="#s5" class="hover:text-fuchsia-400">5 太空站</a>
+        <a href="#s6" class="hover:text-fuchsia-400">6 小測</a>
+      </nav>
+      <a href="#downloads" class="btn !py-1.5 !px-3 !text-xs shrink-0"><i data-lucide="download" class="w-4 h-4"></i> 學習單</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative pt-14 pb-10 text-center border-b border-slate-800 bg-gradient-to-b from-fuchsia-950/40 to-slate-950 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="inline-flex flex-wrap justify-center items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/20 mb-4">
+        力學三部曲 ｜
+        <a class="underline hover:text-white" href="https://sunny30119.github.io/newton-laws-history/">① 牛頓三大運動定律</a> →
+        <a class="underline hover:text-white" href="https://sunny30119.github.io/newton-laws-history/gravity/">② 萬有引力</a> →
+        <a class="underline hover:text-white" href="https://sunny30119.github.io/newton-laws-history/circular-motion/">③ 圓周運動</a> ｜
+        <span class="text-white">番外篇：失重</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black tracking-tight mb-4 leading-tight">
+        失重實驗室：<br>
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-400 via-purple-300 to-sky-400">明明有重力，為什麼叫失重？</span>
+      </h1>
+      <p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto mb-5">全頁只要帶走一句話：</p>
+      <div class="core max-w-xl mx-auto mb-6">「失重不是沒有重力，而是沒有東西撐著你。」</div>
+      <div class="flex flex-wrap justify-center items-center gap-2 text-sm mb-6"><span class="text-slate-400">從哪一頁來的？</span><a class="btn !py-1.5 !px-3 !text-sm" href="https://sunny30119.github.io/newton-laws-history/gravity/#g9">← 回萬有引力・第 9 節</a><a class="btn !py-1.5 !px-3 !text-sm" href="https://sunny30119.github.io/newton-laws-history/circular-motion/#s5">← 回圓周運動・第 5 站</a></div>
+
+      <div class="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 text-left text-sm">
+        <div class="layer l1 !py-3"><div class="layer-tag">👀 看懂</div><div class="text-slate-300">每個人都看得懂：動畫＋一句話結論，不用公式。</div></div>
+        <div class="layer l2 !py-3"><div class="layer-tag">🤔 想深一點</div><div class="text-slate-300">想知道「為什麼」：用圖形和比例推理。</div></div>
+        <div class="layer !py-3 bg-[#1c1408] border-[#5c4210]"><div class="layer-tag bg-amber-500/20 text-amber-300">🔬 資優延伸</div><div class="text-slate-300">點開才出現：公式推導與定量計算。</div></div>
+      </div>
+      <div class="mt-5 flex flex-wrap justify-center gap-4 text-sm text-slate-300">
+        <span><span class="legend-dot" style="background:#f87171"></span>重力（紅）</span>
+        <span><span class="legend-dot" style="background:#34d399"></span>支撐力／正向力（綠）</span>
+        <span><span class="legend-dot" style="background:#fb923c"></span>加速度（橘）</span>
+        <span><span class="legend-dot" style="background:#38bdf8"></span>速度（藍）</span>
+      </div>
+      <p class="mt-3 text-xs text-slate-500">本頁的動畫都忽略空氣阻力；重力加速度 g 取 9.8 m/s²。</p>
+    </div>
+  </section>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-12 space-y-24">
+
+    <!-- ===================== 第 0 站 ===================== -->
+    <section id="s0" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-pink-500/15 text-pink-300 border-pink-500/30">0</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">先預測：纜繩斷了，體重計顯示多少？</h2>
+        <p class="text-sm text-slate-400">小華站在電梯裡的體重計上，平常顯示 50 kg。電梯纜繩突然斷了，電梯直直往下掉……</p></div>
+      </div>
+      <div class="card space-y-4">
+        <canvas id="cv-predict" width="900" height="420" class="sim-canvas"></canvas>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn" data-predict="A">A．不變（還是 50 kg）</button>
+          <button class="btn" data-predict="B">B．變大</button>
+          <button class="btn" data-predict="C">C．變成 0</button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button id="btn-snap" class="btn btn-red" disabled>✂ 剪斷纜繩</button>
+          <button id="btn-predict-reset" class="btn">↺ 重來</button>
+        </div>
+        <div id="predict-fb" class="caption">先在上面選一個答案（A、B、C），「剪斷纜繩」按鈕才會亮起來。</div>
+      </div>
+      <p class="text-xs text-slate-500">※ 這是思想實驗。真實的電梯有好幾條鋼纜，還有「安全鉗」會自動夾住軌道煞車，不會這樣一路掉下去。</p>
+    </section>
+
+    <!-- ===================== 第 1 站 ===================== -->
+    <section id="s1" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-emerald-500/15 text-emerald-300 border-emerald-500/30">1</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">體重計到底在量什麼？</h2>
+        <p class="text-sm text-slate-400">用按鈕，或直接用手指／滑鼠把小人往上拉、往下壓，看看哪支箭頭會變。</p></div>
+      </div>
+      <div class="card space-y-4">
+        <canvas id="cv-scale" width="900" height="440" class="sim-canvas"></canvas>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn" data-hand="-200">⬇ 用力往下壓</button>
+          <button class="btn" data-hand="-100">⬇ 輕輕往下壓</button>
+          <button class="btn sel" data-hand="0">✋ 放開（自己站好）</button>
+          <button class="btn" data-hand="150">⬆ 輕輕往上拉</button>
+          <button class="btn" data-hand="350">⬆ 用力往上拉</button>
+        </div>
+        <div id="scale-cap" class="caption"></div>
+      </div>
+      <div class="layer l1"><div class="layer-tag">👀 看懂</div>
+        不管你怎麼拉、怎麼壓，<strong class="text-red-300">紅色的重力箭頭一動也不動</strong>：地球拉你的力沒有變。<br>
+        會變的是<strong class="text-emerald-300">綠色箭頭</strong>：體重計往上推你的力。體重計上的數字跟著綠色箭頭變。<br>
+        所以，<strong>體重計量的不是重力，而是「它撐著你」的力。</strong>
+      </div>
+      <div class="layer l2"><div class="layer-tag">🤔 想深一點</div>
+        體重計裡面有彈簧（或電子感應片），它能感覺到的只有「被壓了多大力」。<br>
+        你壓體重計（往下），體重計推你（往上），這兩個力是<strong>第三定律</strong>的一對：一樣大、方向相反、作用在不同物體上。所以<strong>讀數＝你壓它的力＝它推你的力</strong>。<br>
+        平常你乖乖站好、沒有加速時，推你的力剛好跟重力一樣大，讀數才會「剛好等於」你的重量。這只是<strong>剛好相等</strong>，不是同一個力：重力是地球拉你，推力是體重計推你，施力者根本不同。
+      </div>
+      <details class="layer l3"><summary>🔬 資優延伸：讀數為什麼是「公斤」？</summary>
+        <div class="inner text-slate-300 space-y-2">
+          <p>體重計真正量到的是力（單位牛頓 N），出廠時假設「你靜止站在地面、g＝9.8 m/s²」，把力除以 9.8 換成公斤顯示：</p>
+          <p>$$\text{顯示的公斤數} = \frac{N}{9.8}$$</p>
+          <p>例：50 kg 的人被往上拉 150 N 時，三力平衡：$N + 150 = 490$，得 $N = 340\ \text{N}$，顯示 $340 \div 9.8 \approx 34.7\ \text{kg}$。人的質量並沒有變，是體重計「被騙了」。</p>
+        </div>
+      </details>
+      <div class="flex flex-wrap items-center gap-2 text-sm"><span class="text-slate-400">🔗 複習：</span><a class="btn !py-1.5 !px-3 !text-sm" href="https://sunny30119.github.io/newton-laws-history/#law3">牛頓第三定律（作用力與反作用力）</a></div>
+      <div class="takeaway">💡 一句話帶走：體重計量的是<u>它推你的力（＝你壓它的力）</u>，不是重力；重力一直都在，而且沒有變。</div>
+    </section>
+
+    <!-- ===================== 第 2 站 ===================== -->
+    <section id="s2" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-sky-500/15 text-sky-300 border-sky-500/30">2</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">電梯實驗室：超重、失重、完全失重</h2>
+        <p class="text-sm text-slate-400">小華（50 kg）拿著蘋果站在體重計上。按按鈕改變電梯的運動，看右邊讀數的曲線怎麼變。</p></div>
+      </div>
+      <div class="card space-y-4">
+        <canvas id="cv-lift" width="900" height="480" class="sim-canvas"></canvas>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn sel" data-lift="rest">⏹ 靜止（重來）</button>
+          <button class="btn" data-lift="up">⏫ 加速上升</button>
+          <button class="btn" data-lift="cruise">⬆ 等速上升</button>
+          <button class="btn" data-lift="brake">⏬ 上升中減速</button>
+          <button class="btn btn-red" data-lift="fall">✂ 纜繩斷掉（自由落下）</button>
+        </div>
+        <div id="lift-cap" class="caption"></div>
+      </div>
+      <div class="layer l1"><div class="layer-tag">👀 看懂</div>
+        <strong class="text-red-300">紅色重力</strong>從頭到尾都一樣長。會變的只有<strong class="text-emerald-300">綠色支撐力</strong>：<br>
+        ・電梯<strong>往上加速</strong>：地板要多出力把你往上推，讀數變大，你覺得變重 → <strong>超重</strong>。<br>
+        ・電梯<strong>等速</strong>（不管上或下）：讀數跟靜止時一樣。<br>
+        ・電梯<strong>往上減速</strong>：地板推你的力變小，讀數變小，你覺得變輕 → <strong>失重</strong>（部分失重）。<br>
+        ・<strong>纜繩斷掉</strong>：你和電梯一起往下掉，地板完全不用撐你，讀數＝0 → <strong>完全失重</strong>。手放開，蘋果就停在手邊不動，像飄在空中。
+      </div>
+      <div class="layer l2"><div class="layer-tag">🤔 想深一點</div>
+        決定讀數的不是「往上走還是往下走」，也不是「快還是慢」，而是<strong class="text-orange-300">加速度（橘色箭頭）朝哪裡</strong>：<br>
+        ・加速度向上 → 支撐力 ＞ 重力 → 超重。（加速上升、或<strong>下降中減速</strong>，都是這樣）<br>
+        ・加速度是 0 → 支撐力 ＝ 重力 → 讀數正常。<br>
+        ・加速度向下 → 支撐力 ＜ 重力 → 失重。（上升中減速、或加速下降）<br>
+        ・加速度向下而且剛好等於 g → 支撐力 ＝ 0 → 完全失重。<br>
+        為什麼蘋果會飄？放手後，蘋果也只受重力，也是以 g 往下加速，跟電梯、跟你<strong>掉得一樣快</strong>，所以彼此的位置不變。從電梯裡面看，它就「停在空中」。
+      </div>
+      <details class="layer l3"><summary>🔬 資優延伸：$N = m(g + a)$</summary>
+        <div class="inner text-slate-300 space-y-2">
+          <p>取<strong>向上為正</strong>。人受兩個力：支撐力 $N$（向上）、重力 $mg$（向下）。牛頓第二定律：</p>
+          <p>$$N - mg = ma \quad\Rightarrow\quad N = m(g + a)$$</p>
+          <p>m＝50 kg，g＝9.8 m/s²：</p>
+          <table class="rec text-sm mx-auto">
+            <tr><th>情況</th><th>a（m/s²）</th><th>N（牛頓）</th><th>讀數（kg）</th></tr>
+            <tr><td>靜止／等速</td><td>0</td><td>490</td><td>50.0</td></tr>
+            <tr><td>加速上升</td><td>＋2</td><td>590</td><td>60.2</td></tr>
+            <tr><td>上升中減速</td><td>－2</td><td>390</td><td>39.8</td></tr>
+            <tr><td>自由落下</td><td>－9.8</td><td>0</td><td>0</td></tr>
+          </table>
+          <p><strong>例題：</strong>電梯中體重計顯示 56 kg，小華的質量是 50 kg，電梯的加速度？<br>
+          $N = 56 \times 9.8 = 548.8\ \text{N}$，</p><p>$$a = \frac{N}{m} - g = \frac{548.8}{50} - 9.8 \approx 1.2\ \text{m/s}^2$$</p><p><strong>向上</strong>。可能是「加速上升」，也可能是「下降中減速」，只看讀數分不出來。</p>
+          <p class="text-sm text-slate-400">想一想：如果電梯被往下拉、加速度向下大於 g，會怎樣？$N$ 會變成負的，意思是地板「得把你往下拉」才跟得上，但地板只能推不能拉，所以你會離開地板，最後頂到天花板。</p>
+        </div>
+      </details>
+      <div class="takeaway">💡 一句話帶走：<u>重力不變，變的是支撐力</u>。加速度向上就超重，向下就失重，向下剛好等於 g 就完全失重。</div>
+    </section>
+
+    <!-- ===================== 第 3 站 ===================== -->
+    <section id="s3" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-violet-500/15 text-violet-300 border-violet-500/30">3</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">重力還在，為什麼「感覺」不到？</h2>
+        <p class="text-sm text-slate-400">你的「重量感」到底是從哪裡來的？兩個動畫回答你。</p></div>
+      </div>
+      <div class="card space-y-4">
+        <div class="font-bold text-violet-300">① 身體像疊起來的海綿</div>
+        <canvas id="cv-sponge" width="900" height="380" class="sim-canvas"></canvas>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn sel" data-sponge="stand">🧍 站在地上</button>
+          <button class="btn" data-sponge="fall">🪂 自由落下</button>
+        </div>
+        <div id="sponge-cap" class="caption"></div>
+      </div>
+      <div class="card space-y-4">
+        <div class="font-bold text-sky-300">② 寶特瓶開洞噴水（可以在教室做！）</div>
+        <canvas id="cv-bottle" width="900" height="460" class="sim-canvas"></canvas>
+        <div class="flex flex-wrap gap-2">
+          <button id="bottle-drop" class="btn btn-go">✋ 放手讓瓶子掉</button>
+          <button id="bottle-reset" class="btn">↺ 重新拿好</button>
+        </div>
+        <div id="bottle-cap" class="caption"></div>
+      </div>
+      <div class="layer l1"><div class="layer-tag">👀 看懂</div>
+        你感覺到的「重」，其實是<strong>身體被擠壓</strong>的感覺：腳底被地板頂、膝蓋被上面的身體壓、內臟被往下拉又被撐住。<br>
+        自由落下時，全身每個部位都掉得一樣快，沒有誰壓誰，<strong>擠壓的感覺就不見了</strong>。重力還在拉你，但你感覺不到，因為你的感覺器官只能感覺身體各部位之間互相<strong>擠壓、拉扯</strong>的力，不能直接感覺到地球的拉力。<br>
+        寶特瓶也一樣：拿著的時候，上面的水壓著下面的水，水被擠出小洞；一放手，水和瓶子一起掉，水「不再壓」，就不噴了。
+      </div>
+      <div class="layer l2"><div class="layer-tag">🤔 想深一點</div>
+        海綿最底下那層被壓得最扁，因為它要撐住上面<strong>所有</strong>的層。越往上，要撐的越少，壓得越少。這就是你站著時腳底最有感覺的原因。<br>
+        水的壓力也是「上面的水壓下面的水」造成的：越深壓力越大，所以低的洞噴出的水速度比較快。放手後，瓶子、水都以同樣的加速度掉，下面的水不必再撐上面的水，<strong>水壓消失</strong>，水就不會被擠出來。
+      </div>
+      <details class="layer l3"><summary>🔬 資優延伸：「等效重力」與液體壓力</summary>
+        <div class="inner text-slate-300 space-y-2">
+          <p>在加速度為 $a$（向上為正）的容器裡，液體深度 $h$ 處的壓力（不算大氣壓）是</p>
+          <p>$$P = \rho\,(g + a)\,h$$</p>
+          <p>靜止時 $a=0$，$P=\rho g h$；自由落下時 $a=-g$，$P=0$：水壓消失，洞口內外沒有壓力差，水就不會噴出來。</p>
+          <p>你可以把 $g+a$ 想成容器裡的「等效重力」：電梯加速上升時它變大，自由落下時它變成 0。這和第 2 站的 $N = m(g+a)$ 是同一個 $g+a$。</p>
+        </div>
+      </details>
+      <div class="p-4 rounded-2xl bg-sky-950/40 border border-sky-800 text-sm text-sky-100 leading-relaxed">
+        🧪 <strong>教室實作：</strong>在寶特瓶側面用圖釘戳 2～3 個小洞，用手指按住洞口裝滿水。站在水桶（或洗手台）上方，放開手指，水會噴出來；接著<strong>整個瓶子放手</strong>，讓它掉進水桶。仔細看（最好用手機慢動作錄影）：瓶子一離手，水柱就停了。<br>
+        <span class="text-sky-300/70">小提醒：瓶子可以用透明膠帶貼一點顏色，慢動作錄影比較容易看清楚；下方要有接水的桶子。</span>
+      </div>
+      <div class="takeaway">💡 一句話帶走：重量感是<u>被擠壓的感覺</u>。自由落下時沒有東西撐著你，就<u>沒有擠壓</u>，所以感覺不到重，但重力還在。</div>
+    </section>
+
+    <!-- ===================== 第 4 站 ===================== -->
+    <section id="s4" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-rose-500/15 text-rose-300 border-rose-500/30">4</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">名詞澄清：那為什麼要叫「失重」？</h2>
+        <p class="text-sm text-slate-400">同一個「重」字，其實藏著兩件不同的事。</p></div>
+      </div>
+      <div class="card space-y-4">
+        <canvas id="cv-compare" width="900" height="340" class="sim-canvas"></canvas>
+        <div class="overflow-x-auto">
+          <table class="cmp w-full text-sm min-w-[520px]">
+            <tr><th class="w-24"></th><th class="text-red-300">重力</th><th class="text-emerald-300">視重（重量感）</th></tr>
+            <tr><td class="text-slate-400">是什麼</td><td>地球拉你的力</td><td>支撐你的力；體重計的讀數；你「覺得」自己多重</td></tr>
+            <tr><td class="text-slate-400">施力者</td><td>地球</td><td>地板、體重計、椅子、太空站的牆……</td></tr>
+            <tr><td class="text-slate-400">什麼時候有</td><td>地球附近<strong>永遠存在</strong>（越遠越小，但不會變 0）</td><td>要有東西撐著你才有；自由落下時＝0</td></tr>
+            <tr><td class="text-slate-400">電梯加速上升</td><td>不變</td><td>變大（超重）</td></tr>
+            <tr><td class="text-slate-400">纜繩斷掉</td><td>不變</td><td>變成 0（完全失重）</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="layer l1"><div class="layer-tag">👀 看懂</div>
+        「失重」失去的是<strong>重量感</strong>（視重），<strong>不是重力</strong>。<br>
+        就像「失眠」不是眼睛不見了，是「睡著的狀態」不見了；「失重」也不是重力不見了，是「被撐著、覺得重」的狀態不見了。
+      </div>
+      <div class="layer l2"><div class="layer-tag">🤔 想深一點</div>
+        英文叫 <em>weightlessness</em>（沒有重量的狀態），一樣容易誤會，物理學家也常加上引號，或改用更精確的說法：<strong>自由落下</strong>（free fall），意思是「只受重力、沒有其他力撐著」。<br>
+        所以下次看到「太空人處於失重狀態」，你可以在心裡翻譯成：<strong>「太空人正在自由落下，沒有東西撐著他。」</strong><br>
+        <span class="text-slate-400">新聞和影片常把太空站裡的狀態說成「無重力」，要小心：這個說法字面上是錯的，太空站附近仍有很強的重力（第 5 站會算給你看）。</span>
+      </div>
+      <details class="layer l3"><summary>🔬 資優延伸：「重量」到底指哪一個？</summary>
+        <div class="inner text-slate-300 space-y-2">
+          <p>不同書對「重量（weight）」有兩種定義：</p>
+          <p>① <strong>重量＝重力</strong> $W = mg$（國中課本採用這個）。照這個定義，太空人的重量並沒有消失，「失重」這個詞嚴格說來就不精確。</p>
+          <p>② <strong>重量＝視重</strong>（支撐力的大小，也就是體重計讀數）。照這個定義，自由落下時重量＝0，「失重」就名副其實。</p>
+          <p>兩種用法都存在，所以重點不是背哪一個，而是說清楚你指的是「地球拉你的力」還是「撐著你的力」。</p>
+        </div>
+      </details>
+      <div class="takeaway">💡 一句話帶走：失重失去的是<u>重量感（視重）</u>，不是重力；更精確的說法是<u>自由落下</u>。</div>
+    </section>
+
+    <!-- ===================== 第 5 站 ===================== -->
+    <section id="s5" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-indigo-500/15 text-indigo-300 border-indigo-500/30">5</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">從電梯到太空站：一台永遠掉不到地面的電梯</h2>
+        <p class="text-sm text-slate-400">在超高的塔頂，把「纜繩斷掉的電梯」往旁邊推出去。推得越快，會怎樣？（速度從 0 調到約 7.5 km/s）</p></div>
+      </div>
+      <div class="card space-y-4">
+        <canvas id="cv-orbit" width="900" height="520" class="sim-canvas"></canvas>
+        <div class="space-y-1">
+          <div class="flex justify-between text-sm"><span>電梯的水平速度</span><span id="orb-v-val" class="mono text-sky-300"></span></div>
+          <input id="orb-v" type="range" min="0" max="1" step="0.01" value="0.5">
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn" data-orb="0">0（直直掉）</button>
+          <button class="btn" data-orb="0.5">約 3.8 km/s</button>
+          <button class="btn" data-orb="0.85">約 6.4 km/s</button>
+          <button class="btn" data-orb="1">約 7.5 km/s（繞圈）</button>
+          <button id="orb-go" class="btn btn-go">▶ 推出去</button>
+          <button id="orb-clear" class="btn">🧹 清除軌跡</button>
+        </div>
+        <div id="orb-cap" class="caption"></div>
+      </div>
+      <div class="layer l1"><div class="layer-tag">👀 看懂</div>
+        不管推多快，電梯一離開塔，就<strong>只受重力、一直在掉</strong>，所以裡面的人一路都是完全失重（讀數 0）。<br>
+        推得夠快，地面是圓的，它掉的同時地面也「彎下去」，於是它<strong>永遠掉不到地面</strong>，就繞地球一圈。<br>
+        <strong>國際太空站就是這樣一台電梯</strong>：它一直在往地球掉，只是往前跑得夠快，所以掉不到。太空人飄浮，是因為他們和太空站一起在掉。
+      </div>
+      <div class="layer l2"><div class="layer-tag">🤔 想深一點</div>
+        太空站離地面約 400 公里，聽起來很高，可是地球半徑約 6400 公里，400 公里只是地球半徑的 1/16 左右。距離地心只遠了一點點，重力仍然有地面的<strong>約 88.5%</strong>，一點都不小！<br>
+        正因為重力這麼大，太空站才需要每秒跑約 7.7 公里，大約 92 分鐘就繞地球一圈。<br><br>
+        <strong>生活中的「短暫失重」：</strong><br>
+        ・<strong>失重飛機（拋物線飛行）</strong>：飛機先拉高，接著讓機身沿著「自由落下的拋物線」飛，機上的人每次可以體驗約 20～25 秒的失重；太空人受訓、科學實驗都會用。<br>
+        ・<strong>遊樂園的自由落體設施</strong>：座椅剛放下去、還沒開始煞車的那段，你會覺得屁股離開椅子、肚子「空空的」。<br>
+        ・<strong>跳起來騰空的整段時間</strong>：腳離開地面後，到落地前，你都是在自由落下（往上飛那段也算！因為加速度一樣是向下的 g），這段時間也是失重。
+      </div>
+      <details class="layer l3"><summary>🔬 資優延伸：400 公里高的重力有多大？</summary>
+        <div class="inner text-slate-300 space-y-2">
+          <p>重力和「到地心距離的平方」成反比。地球半徑 $R \approx 6371\ \text{km}$，太空站到地心 $r \approx 6371 + 400 = 6771\ \text{km}$：</p>
+          <p>$$\frac{g_{400}}{g_0} = \left(\frac{R}{R+h}\right)^2 = \left(\frac{6371}{6771}\right)^2 \approx 0.885$$</p>
+          <p>所以 $g_{400} \approx 9.8 \times 0.885 \approx 8.7\ \text{m/s}^2$。50 kg 的太空人在那裡受的重力約 $50 \times 8.7 \approx 434\ \text{N}$，但體重計讀數是 0。</p>
+          <p>繞圈需要的速度：重力剛好當向心力，$\dfrac{v^2}{r} = g_{400}$，</p><p>$$v = \sqrt{8.68 \times 6.771\times10^{6}} \approx 7.7\ \text{km/s}$$</p><p>一圈時間 $T = \dfrac{2\pi r}{v} \approx 5500\ \text{s} \approx 92$ 分鐘。</p>
+          <p class="text-sm text-slate-400">註：模擬中塔的高度有誇張放大，約地球半徑的 1/10（約 640 km）。越高的地方重力越小，剛好繞圈需要的速度也越小：地表附近約 7.9 km/s，太空站高度（400 km）約 7.7 km/s，模擬中的塔頂（640 km）約 7.5 km/s。模擬中也忽略了空氣阻力與地球自轉。</p>
+        </div>
+      </details>
+      <div class="flex flex-wrap items-center gap-2 text-sm"><span class="text-slate-400">🔗 相關：</span><a class="btn !py-1.5 !px-3 !text-sm" href="https://sunny30119.github.io/newton-laws-history/gravity/#g5">萬有引力・第 5 節 牛頓砲彈山</a><a class="btn !py-1.5 !px-3 !text-sm" href="https://sunny30119.github.io/newton-laws-history/gravity/#g9">萬有引力・第 9 節 太空中沒有重力？</a><a class="btn !py-1.5 !px-3 !text-sm" href="https://sunny30119.github.io/newton-laws-history/circular-motion/#s3">圓周運動・第 3 站 向心力是角色</a></div>
+      <div class="takeaway">💡 一句話帶走：太空站裡<u>有重力（約地面的 88.5%）</u>；太空人飄浮，是因為和太空站<u>一起在自由落下</u>，沒有東西撐著他。</div>
+    </section>
+
+    <!-- ===================== 第 6 站 ===================== -->
+    <section id="s6" class="scroll-mt-20 space-y-5">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-amber-500/15 text-amber-300 border-amber-500/30">6</div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">小測驗：帶得走嗎？</h2>
+        <p class="text-sm text-slate-400">點選答案，馬上看解析。⭐ 是挑戰題。g 取 9.8 m/s²，忽略空氣阻力。</p></div>
+      </div>
+      <div id="quiz" class="space-y-4"></div>
+      <div id="quiz-score" class="caption text-center font-bold"></div>
+    </section>
+
+    <!-- ===================== 下載 ===================== -->
+    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-wrap items-center gap-2"><span class="font-bold mr-2">↩ 看完了？回到原來的頁面：</span><a class="btn" href="https://sunny30119.github.io/newton-laws-history/gravity/#g9">萬有引力・第 9 節</a><a class="btn" href="https://sunny30119.github.io/newton-laws-history/circular-motion/#s5">圓周運動・第 5 站</a><a class="btn" href="https://sunny30119.github.io/newton-laws-history/">牛頓三大定律</a></div>
+
+    <section id="downloads" class="scroll-mt-20 space-y-4">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+        <div class="station-num bg-slate-500/15 text-slate-300 border-slate-500/30"><i data-lucide="download" class="w-5 h-5"></i></div>
+        <div><h2 class="text-2xl sm:text-3xl font-extrabold">學習單下載</h2>
+        <p class="text-sm text-slate-400">一份兩用：基本題＋⭐ 挑戰題。</p></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div class="font-bold text-lg">📝 學生版</div>
+          <div class="flex flex-wrap gap-2"><button class="btn" disabled>PDF（製作中）</button><button class="btn" disabled>Word（製作中）</button></div>
+        </div>
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div class="font-bold text-lg">🔑 教師版（含答案與講解）</div>
+          <div class="flex flex-wrap gap-2"><button class="btn" disabled>PDF（製作中）</button><button class="btn" disabled>Word（製作中）</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+/* ================= 共用工具 ================= */
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const COL = { v:'#38bdf8', v2:'#7dd3fc', a:'#fb923c', f:'#f87171', ball:'#e2e8f0', text:'#cbd5e1', dim:'#64748b', faint:'#334155', good:'#34d399', amber:'#fbbf24', purple:'#c084fc' };
+const FONT = '"Noto Sans TC", sans-serif';
+
+function setup(id) {
+  const c = document.getElementById(id);
+  const W = +c.getAttribute('width'), H = +c.getAttribute('height');
+  c.width = W * DPR; c.height = H * DPR;
+  c.style.aspectRatio = W + ' / ' + H;
+  const ctx = c.getContext('2d');
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  return { c, ctx, W, H };
+}
+function arrow(ctx, x1, y1, x2, y2, o = {}) {
+  const col = o.color || '#fff', w = o.w || 3, hl = o.head || 12;
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy);
+  if (L < 2) return;
+  const ux = dx / L, uy = dy / L, h = Math.min(hl, L * 0.6);
+  ctx.save();
+  ctx.globalAlpha = o.alpha ?? 1;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
+  if (o.glow) { ctx.shadowColor = COL.amber; ctx.shadowBlur = 18; }
+  if (o.dash) ctx.setLineDash([8, 6]);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * h * 0.7, y2 - uy * h * 0.7); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ux * h - uy * h * 0.5, y2 - uy * h + ux * h * 0.5);
+  ctx.lineTo(x2 - ux * h + uy * h * 0.5, y2 - uy * h - ux * h * 0.5);
+  ctx.closePath();
+  if (o.dash) { ctx.lineWidth = 2; ctx.stroke(); } else ctx.fill();
+  if (o.label) {
+    ctx.shadowBlur = 0;
+    ctx.font = `bold ${o.size || 15}px ${FONT}`;
+    ctx.fillStyle = o.labelColor || col; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const off = o.lo ?? 20, lx = x2 + ux * off + (o.lox || 0), ly = y2 + uy * off + (o.loy || 0);
+    const tw = ctx.measureText(o.label).width, th = (o.size || 15) + 6;
+    ctx.globalAlpha = (o.alpha ?? 1) * 0.75; ctx.fillStyle = '#020617';
+    ctx.beginPath(); ctx.roundRect(lx - tw / 2 - 4, ly - th / 2, tw + 8, th, 5); ctx.fill();
+    ctx.globalAlpha = o.alpha ?? 1; ctx.fillStyle = o.labelColor || col;
+    ctx.fillText(o.label, lx, ly);
+  }
+  ctx.restore();
+}
+function txt(ctx, s, x, y, o = {}) {
+  ctx.save();
+  ctx.globalAlpha = o.alpha ?? 1;
+  ctx.font = `${o.bold === false ? '' : 'bold '}${o.size || 15}px ${FONT}`;
+  ctx.fillStyle = o.color || COL.text; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle';
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+function dot(ctx, x, y, r, fill, stroke, glow) {
+  ctx.save();
+  if (glow) { ctx.shadowColor = COL.amber; ctx.shadowBlur = 20; }
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke(); }
+  ctx.restore();
+}
+function ring(ctx, x, y, r, color, w = 1.5, dash) {
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = w;
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+}
+function line(ctx, x1, y1, x2, y2, color, w = 2, dash) {
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore();
+}
+function polyline(ctx, pts, color, w = 2, dash, alpha = 1) {
+  if (pts.length < 2) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineJoin = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke(); ctx.restore();
+}
+const ease = p => p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const lerp = (a, b, p) => a + (b - a) * p;
+const $ = id => document.getElementById(id);
+
+/* 只更新畫面上看得到的模擬，省電 */
+const sims = [];
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { e.target._vis = e.isIntersecting; });
+  sims.forEach(s => { s.vis = s.els.some(el => el._vis); });
+});
+function register(els, tick) { const s = { els, tick, vis: false }; sims.push(s); els.forEach(el => io.observe(el)); tick(0); return s; }
+let lastT = performance.now();
+function loop(t) { const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t; sims.forEach(s => { if (s.vis) s.tick(dt); }); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+
+/* 一組按鈕裡只有一顆被選取 */
+function selectIn(selector, btn) { document.querySelectorAll(selector).forEach(b => b.classList.toggle('sel', b === btn)); }
+
+/* ================= 本頁專用工具 ================= */
+COL.n = '#34d399'; COL.g = '#f87171'; COL.hand = '#c084fc';
+const G = 9.8, MASS = 50, WEIGHT = MASS * G;   // 50 kg，重力 490 N
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function makeStars(n, W, H, seed) { const r = rng(seed); return Array.from({ length: n }, () => ({ x: r() * W, y: r() * H, s: r() * 1.4 + 0.3, a: r() * 0.6 + 0.2 })); }
+function drawStars(ctx, stars) { stars.forEach(st => { ctx.globalAlpha = st.a; ctx.fillStyle = '#fff'; ctx.fillRect(st.x, st.y, st.s, st.s); }); ctx.globalAlpha = 1; }
+function earth(ctx, x, y, r) {
+  const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+  g.addColorStop(0, '#60a5fa'); g.addColorStop(1, '#1e3a8a');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = '#16a34a88';
+  ctx.beginPath(); ctx.ellipse(x - r * 0.3, y - r * 0.1, r * 0.35, r * 0.22, 0.6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x + r * 0.35, y + r * 0.3, r * 0.25, r * 0.15, -0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function apple(ctx, x, y, r = 10) { dot(ctx, x, y, r, '#dc2626', '#fca5a5'); line(ctx, x, y - r, x + 2, y - r - 6, '#78350f', 2); ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.ellipse(x + 6, y - r - 4, 5, 2.5, -0.5, 0, Math.PI * 2); ctx.fill(); }
+/* 火柴人：foot＝腳底 y，h＝身高（像素）。回傳手、重心位置 */
+function person(ctx, x, foot, h, o = {}) {
+  const hr = h * 0.11, headY = foot - h + hr, neck = headY + hr, hip = foot - h * 0.46, sh = neck + h * 0.06;
+  const col = o.color || '#e2e8f0', w = Math.max(3, h * 0.035);
+  line(ctx, x, neck, x, hip, col, w);
+  line(ctx, x, hip, x - h * 0.09, foot, col, w); line(ctx, x, hip, x + h * 0.09, foot, col, w);
+  let hand;
+  if (o.arm === 'fwd') hand = { x: x + h * 0.3, y: sh + h * 0.1 };
+  else if (o.arm === 'up') hand = { x: x + h * 0.05, y: headY - hr * 1.6 };
+  else if (o.arm === 'float') hand = { x: x + h * 0.26, y: sh - h * 0.12 };
+  else hand = { x: x + h * 0.14, y: hip + h * 0.04 };
+  line(ctx, x, sh, hand.x, hand.y, col, w);
+  line(ctx, x, sh, x - (o.arm === 'float' ? h * 0.26 : h * 0.14), o.arm === 'float' ? sh - h * 0.12 : hip + h * 0.04, col, w);
+  dot(ctx, x, headY, hr, '#fde68a', '#fef3c7');
+  return { hand, cm: { x, y: foot - h * 0.55 }, head: { x, y: headY - hr } };
+}
+/* 體重計：回傳表面 y */
+function scaleBox(ctx, x, floor, wdt, reading, squash = 0) {
+  const top = floor - 18 + squash;
+  ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.roundRect(x - wdt / 2, top, wdt, floor - top, 4); ctx.fill();
+  ctx.fillStyle = '#020617'; ctx.fillRect(x + wdt / 2 - 46, top + 4, 40, Math.max(6, floor - top - 8));
+  if (reading != null) txt(ctx, reading.toFixed(1), x + wdt / 2 - 26, top + (floor - top) / 2, { color: '#4ade80', size: 10 });
+  return top;
+}
+function bigReading(ctx, x, y, kg, label = '體重計讀數') {
+  ctx.save(); ctx.fillStyle = '#020617'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(x - 110, y - 46, 220, 92, 12); ctx.fill(); ctx.stroke(); ctx.restore();
+  txt(ctx, label, x, y - 28, { color: COL.dim, size: 14 });
+  txt(ctx, Math.max(0, kg).toFixed(1) + ' kg', x, y + 12, { color: kg < 0.05 ? '#f472b6' : '#4ade80', size: 38, });
+}
+
+/* ================= 第 0 站：預測 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-predict');
+  const EX = 230, ETOP = 120, EH = 240, EW = 200, FLOOR = ETOP + EH, SLOW = 0.35, PX = 30;
+  let phase = 'idle', choice = null, t = 0, v = 0, off = 0, shown = false, cableEnd = 0;
+  const fb = $('predict-fb'), snapBtn = $('btn-snap');
+  document.querySelectorAll('[data-predict]').forEach(b => b.onclick = () => {
+    if (phase !== 'idle') return;
+    choice = b.dataset.predict; selectIn('[data-predict]', b); snapBtn.disabled = false;
+    fb.innerHTML = `你選了 <strong>${choice}</strong>。按「✂ 剪斷纜繩」看看結果！（會用慢動作播放）`;
+  });
+  snapBtn.onclick = () => {
+    if (phase !== 'idle' || !choice) return;
+    phase = 'fall'; t = 0; v = 0; off = 0; shown = false; snapBtn.disabled = true;
+    fb.textContent = '纜繩斷了！盯著體重計的數字……';
+  };
+  $('btn-predict-reset').onclick = () => {
+    phase = 'idle'; choice = null; t = 0; v = 0; off = 0; shown = false; snapBtn.disabled = true;
+    document.querySelectorAll('[data-predict]').forEach(b => b.classList.remove('sel', 'right', 'wrong'));
+    fb.textContent = '先在上面選一個答案（A、B、C），「剪斷纜繩」按鈕才會亮起來。';
+  };
+  function showResult() {
+    shown = true;
+    document.querySelectorAll('[data-predict]').forEach(b => {
+      if (b.dataset.predict === 'C') b.classList.add('right'); else if (b.dataset.predict === choice) b.classList.add('wrong');
+    });
+    const why = '纜繩一斷，電梯、小華、體重計<strong>一起往下掉，而且掉得一樣快</strong>。體重計的表面跟著往下跑，小華的腳不再壓它，它也不必撐小華，所以讀數變成 0。<br>但是注意：<strong class="text-red-300">紅色的重力箭頭還在，而且一樣長！</strong>地球仍然在拉小華。讀數變 0，是因為<strong>沒有東西撐著他</strong>。這就是「失重」。';
+    fb.innerHTML = choice === 'C' ? `✅ <strong>預測正確！</strong>讀數變成 0。${why}` : `❌ 你選了 ${choice}，但讀數其實<strong>變成 0（C）</strong>。${why}`;
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // 井道背景（往上捲動表示電梯在往下掉）
+    ctx.fillStyle = '#0b1220'; ctx.fillRect(EX - EW / 2 - 30, 0, EW + 60, H);
+    for (let k = -1; k < 6; k++) {
+      const yy = (k * 140 - off % 140 + 700) % 700 - 70;
+      line(ctx, EX - EW / 2 - 30, yy, EX - EW / 2 - 6, yy, '#475569', 3); line(ctx, EX + EW / 2 + 6, yy, EX + EW / 2 + 30, yy, '#475569', 3);
+    }
+    // 纜繩
+    if (phase === 'idle') line(ctx, EX, 0, EX, ETOP, '#94a3b8', 3);
+    else { const ce = 60 - off; if (ce > -20) { line(ctx, EX, 0, EX, Math.max(0, ce), '#94a3b8', 3); txt(ctx, '✂', EX + 14, Math.max(8, ce), { color: '#fda4af', size: 16 }); } line(ctx, EX, ETOP - 30, EX, ETOP, '#94a3b8', 3); }
+    // 電梯廂
+    ctx.save(); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3; ctx.fillStyle = '#111827';
+    ctx.beginPath(); ctx.rect(EX - EW / 2, ETOP, EW, EH); ctx.fill(); ctx.stroke(); ctx.restore();
+    const reading = phase === 'idle' ? MASS : 0;
+    const top = scaleBox(ctx, EX - 10, FLOOR - 2, 90, reading);
+    const P = person(ctx, EX - 10, top, 150);
+    arrow(ctx, P.cm.x + 42, P.cm.y - 10, P.cm.x + 42, P.cm.y + 60, { color: COL.g, w: 4, label: '重力', lo: 16, size: 14 });
+    if (phase === 'idle') arrow(ctx, P.cm.x - 42, top, P.cm.x - 42, top - 70, { color: COL.n, w: 4, label: '支撐力', lo: 16, size: 14 });
+    if (phase === 'fall') { arrow(ctx, EX + EW / 2 + 50, 200, EX + EW / 2 + 50, 200 + Math.min(110, 10 + v * 3), { color: COL.v, w: 4, label: '速度', lo: 16, size: 14 });
+      txt(ctx, '慢動作', EX + EW / 2 + 50, 120, { color: COL.dim, size: 13 }); }
+    bigReading(ctx, 640, 150, reading);
+    txt(ctx, phase === 'idle' ? '電梯靜止，掛在纜繩上' : '纜繩斷了：電梯自由落下（忽略空氣阻力）', 640, 250, { color: phase === 'idle' ? COL.text : '#fda4af', size: 16 });
+    txt(ctx, '小華的質量 50 kg', 640, 290, { color: COL.dim, size: 14 });
+  }
+  register([c], dt => {
+    if (phase === 'fall') { t += dt; v += G * dt * SLOW; off += v * PX * dt * SLOW; if (t > 1.6 && !shown) showResult(); }
+    draw();
+  });
+})();
+
+/* ================= 第 1 站：體重計 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-scale');
+  const X = 250, FLOOR = 400, K = 0.22;   // K：每牛頓幾像素
+  let F = 0, Fshow = 0, drag = null;
+  const cap = $('scale-cap');
+  document.querySelectorAll('[data-hand]').forEach(b => b.onclick = () => { selectIn('[data-hand]', b); F = +b.dataset.hand; });
+  const toY = e => { const r = c.getBoundingClientRect(); return (e.clientY - r.top) * H / r.height; };
+  c.addEventListener('pointerdown', e => { drag = { y0: toY(e), F0: F }; c.setPointerCapture(e.pointerId); c.style.cursor = 'grabbing'; });
+  c.addEventListener('pointermove', e => { if (!drag) return; F = Math.max(-250, Math.min(450, drag.F0 + (drag.y0 - toY(e)) * 3)); selectIn('[data-hand]', null); });
+  const up = () => { if (drag) { drag = null; c.style.cursor = 'grab'; } };
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+  function updCap(N) {
+    const kg = N / G;
+    let s;
+    if (Math.abs(Fshow) < 5) s = '自己站好：體重計推你 490 N，剛好等於重力，讀數 <strong>50.0 kg</strong>。';
+    else if (Fshow > 0) s = `手把你往上拉 ${Fshow.toFixed(0)} N：體重計不用撐那麼多，推力變小為 ${N.toFixed(0)} N，讀數 <strong class="text-emerald-300">${kg.toFixed(1)} kg</strong>（變輕了？）。`;
+    else s = `手把你往下壓 ${(-Fshow).toFixed(0)} N：體重計要多撐，推力變大為 ${N.toFixed(0)} N，讀數 <strong class="text-emerald-300">${kg.toFixed(1)} kg</strong>（變重了？）。`;
+    cap.innerHTML = s + '　但<strong class="text-red-300">重力一直是 490 N</strong>，你的質量也還是 50 kg。';
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const N = WEIGHT - Fshow, kg = N / G;
+    line(ctx, 40, FLOOR, 470, FLOOR, '#475569', 3);
+    const top = scaleBox(ctx, X, FLOOR, 130, kg, (N - WEIGHT) * 0.012);
+    const P = person(ctx, X, top, 190, { arm: Fshow > 5 ? 'up' : 'down' });
+    // 手的力
+    if (Math.abs(Fshow) > 5) {
+      if (Fshow > 0) { line(ctx, P.hand.x, P.hand.y, P.hand.x, 0, '#a78bfa', 2, [4, 4]); dot(ctx, P.hand.x, P.hand.y, 6, '#a78bfa');
+        arrow(ctx, P.hand.x + 26, P.hand.y + 40, P.hand.x + 26, P.hand.y + 40 - Fshow * K, { color: COL.hand, w: 4, label: '拉力', lo: 14, size: 14 }); }
+      else { const hy = P.head.y - 6; dot(ctx, X, hy - 8, 9, '#a78bfa'); txt(ctx, '手', X, hy - 8, { color: '#1e1b4b', size: 11 });
+        arrow(ctx, X + 30, hy - 20 + Fshow * K, X + 30, hy - 20 + 0, { color: COL.hand, w: 4, label: '', size: 14 });
+        txt(ctx, '壓力', X + 62, hy - 20 + Fshow * K / 2, { color: COL.hand, size: 14 }); }
+    }
+    // 重力（固定）、支撐力（會變）
+    arrow(ctx, X + 48, P.cm.y - 20, X + 48, P.cm.y - 20 + WEIGHT * K, { color: COL.g, w: 5, label: '重力 490 N（不變）', lo: 16, size: 14 });
+    arrow(ctx, X - 48, top, X - 48, top - N * K, { color: COL.n, w: 5, label: `體重計推你 ${N.toFixed(0)} N`, lo: 16, size: 14 });
+    // 第三定律的另一半：你壓體重計
+    arrow(ctx, X + 95, top - 2, X + 95, top - 2 + Math.max(4, N * K * 0.45), { color: '#6ee7b7', w: 3, alpha: 0.85 });
+    txt(ctx, '你壓體重計', X + 150, top + 30, { color: '#6ee7b7', size: 12 });
+    // 右側：讀數與長條
+    bigReading(ctx, 690, 90, kg);
+    const bx = 540, by = 330, bw = 70, sc = 0.28;
+    [['重力', WEIGHT, COL.g], ['手的力', Math.abs(Fshow), COL.hand], ['支撐力', N, COL.n]].forEach(([n, v, col], i) => {
+      const x = bx + i * 110; ctx.fillStyle = col; ctx.globalAlpha = 0.85; ctx.fillRect(x, by - v * sc, bw, v * sc); ctx.globalAlpha = 1;
+      txt(ctx, n, x + bw / 2, by + 18, { color: col, size: 14 }); txt(ctx, v.toFixed(0) + ' N', x + bw / 2, by - v * sc - 12, { color: COL.text, size: 13 });
+    });
+    line(ctx, bx - 10, by, bx + 320, by, '#475569', 1.5);
+    txt(ctx, Fshow > 5 ? '手往上拉' : Fshow < -5 ? '手往下壓' : '', bx + 110 + bw / 2, by + 38, { color: COL.dim, size: 12, bold: false });
+    txt(ctx, '可以直接拖曳小人：往上拉、往下壓', 20, 24, { align: 'left', color: COL.dim, size: 14 });
+  }
+  register([c], dt => {
+    if (!drag && !document.querySelector('[data-hand].sel') && Math.abs(F) > 0) { /* 拖曳放開後慢慢回到 0 */ F *= Math.pow(0.02, dt); if (Math.abs(F) < 2) { F = 0; selectIn('[data-hand]', document.querySelector('[data-hand="0"]')); } }
+    Fshow += (F - Fshow) * Math.min(1, dt * 10);
+    draw(); updCap(WEIGHT - Fshow);
+  });
+})();
+
+/* ================= 第 2 站：電梯實驗室 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-lift');
+  const EX = 200, ETOP = 70, EH = 370, EW = 230, FLOOR = ETOP + EH, PX = 30;
+  const GR = { x0: 470, x1: 880, y0: 455, y1: 235, span: 12, max: 70 };
+  let mode = 'rest', a = 0, v = 0, y = 0, t = 0, hist = [], sampleT = 0, note = '';
+  const cap = $('lift-cap');
+  const MODES = {
+    rest: '靜止：支撐力＝重力＝490 N，讀數 50.0 kg。',
+    up: '加速上升（a＝2 m/s² 向上）：地板要多出力把小華往上推，支撐力變大 → <strong class="text-emerald-300">超重</strong>。',
+    cruise: '等速上升（a＝0）：速度不變就不用多出力，支撐力＝重力，讀數和靜止<strong>一模一樣</strong>。',
+    brake: '上升中減速（a＝2 m/s² <strong>向下</strong>）：電梯還在往上走，但加速度向下，支撐力變小 → <strong class="text-sky-300">失重</strong>（部分失重）。',
+    fall: '纜繩斷掉（a＝g 向下）：電梯、小華、蘋果一起自由落下，支撐力＝0 → <strong class="text-pink-300">完全失重</strong>。小華放開蘋果，蘋果就停在手邊不動，像飄在空中！但<strong class="text-red-300">重力還是 490 N</strong>。'
+  };
+  function setMode(m, btn, auto) {
+    note = '';
+    if (!auto && mode === 'fall' && m !== 'fall') { v = 0; y = 0; note = '（先回到靜止，重新開始）'; }
+    if (m === 'up' && v >= 5.99) { m = 'cruise'; btn = null; note = '（已經是最高速 6 m/s，所以維持等速）'; }
+    if (m === 'rest' && !auto) { v = 0; y = 0; }
+    if (m === 'cruise' && v < 0.5) { v = 3; note += '（假設電梯已經以 3 m/s 往上走）'; }
+    if (m === 'brake' && v <= 0.2) { v = 4; note += '（假設電梯原本以 4 m/s 往上走）'; }
+    if ((m === 'up' || m === 'cruise' || m === 'brake') && v < 0) { v = m === 'up' ? 0 : v; }
+    mode = m; selectIn('[data-lift]', btn || document.querySelector(`[data-lift="${m}"]`));
+  }
+  document.querySelectorAll('[data-lift]').forEach(b => b.onclick = () => setMode(b.dataset.lift, b));
+  function accOf() { return { rest: 0, up: 2, cruise: 0, brake: -2, fall: -G }[mode]; }
+  function state(N) {
+    if (N < 1) return ['完全失重', '#f472b6'];
+    if (N > WEIGHT + 1) return ['超重', '#34d399'];
+    if (N < WEIGHT - 1) return ['失重（部分）', '#38bdf8'];
+    return ['正常', '#cbd5e1'];
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const N = Math.max(0, MASS * (G + a)), kg = N / G;
+    // 井道與樓層（隨電梯位置捲動）
+    ctx.fillStyle = '#0b1220'; ctx.fillRect(EX - EW / 2 - 34, 0, EW + 68, H);
+    const FLH = 3.5 * PX;   // 一層樓約 3.5 m
+    for (let k = -2; k < 8; k++) {
+      const fl = Math.floor(y / 3.5) + k, yy = FLOOR + (y - fl * 3.5) * PX;
+      if (yy < -20 || yy > H + 20) continue;
+      line(ctx, EX - EW / 2 - 34, yy, EX - EW / 2 - 6, yy, '#475569', 3); line(ctx, EX + EW / 2 + 6, yy, EX + EW / 2 + 34, yy, '#475569', 3);
+      txt(ctx, (fl >= 0 ? fl + 1 : 'B' + (-fl)) + 'F', EX - EW / 2 - 20, yy - 12, { color: '#64748b', size: 12 });
+    }
+    if (mode !== 'fall') line(ctx, EX, 0, EX, ETOP, '#94a3b8', 3); else line(ctx, EX, ETOP - 26, EX, ETOP, '#94a3b8', 3);
+    ctx.save(); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3; ctx.fillStyle = '#111827';
+    ctx.beginPath(); ctx.rect(EX - EW / 2, ETOP, EW, EH); ctx.fill(); ctx.stroke(); ctx.restore();
+    const PXp = EX - 30;
+    const top = scaleBox(ctx, PXp, FLOOR - 2, 100, kg, (N - WEIGHT) * 0.01);
+    const P = person(ctx, PXp, top, 170, { arm: 'fwd' });
+    if (mode === 'fall') { apple(ctx, P.hand.x + 4, P.hand.y - 12, 11); [-0.9, -0.3, 0.3].forEach(k => line(ctx, P.hand.x, P.hand.y, P.hand.x + 9 * Math.cos(k + 1.2), P.hand.y + 9 * Math.sin(k + 1.2), '#fde68a', 2)); txt(ctx, '蘋果停在原地', P.hand.x - 8, P.hand.y - 42, { align: 'left', color: '#fca5a5', size: 12 }); }
+    else apple(ctx, P.hand.x + 4, P.hand.y - 12, 11);
+    // 力（畫在人身上，1 px ＝ 6 N）
+    const K = 1 / 6;
+    arrow(ctx, PXp - 50, P.cm.y - 10, PXp - 50, P.cm.y - 10 + WEIGHT * K, { color: COL.g, w: 5, label: '重力', lo: 15, size: 14 });
+    if (N > 1) arrow(ctx, PXp + 50, top, PXp + 50, top - N * K, { color: COL.n, w: 5, label: '支撐力', lo: 15, size: 14 });
+    else txt(ctx, '支撐力＝0', PXp + 70, top - 20, { color: COL.n, size: 14 });
+    // 加速度與速度（畫在電梯旁）
+    const ax = EX + EW / 2 + 56;
+    if (Math.abs(a) > 0.01) arrow(ctx, ax, 190, ax, 190 - a * 11, { color: COL.a, w: 5, label: 'a', lo: 14, size: 15 });
+    else txt(ctx, 'a＝0', ax, 190, { color: COL.a, size: 14 });
+    const vx = ax, vy = 360, vl = Math.max(-80, Math.min(80, v * 9));
+    if (Math.abs(v) > 0.05) arrow(ctx, vx, vy, vx, vy - vl, { color: COL.v, w: 4, label: 'v', lo: 14, size: 15 });
+    else txt(ctx, 'v＝0', vx, vy, { color: COL.v, size: 14 });
+    // 右側數字
+    const [st, sc] = state(N);
+    txt(ctx, '重力', 500, 40, { align: 'left', color: COL.g, size: 15 }); txt(ctx, '490 N（不變）', 570, 40, { align: 'left', color: COL.text, size: 15 });
+    txt(ctx, '支撐力', 500, 72, { align: 'left', color: COL.n, size: 15 }); txt(ctx, N.toFixed(0) + ' N', 570, 72, { align: 'left', color: COL.text, size: 15 });
+    txt(ctx, '加速度', 500, 104, { align: 'left', color: COL.a, size: 15 }); txt(ctx, (Math.abs(a) < 0.01 ? '0' : Math.abs(a).toFixed(1) + ' m/s² ' + (a > 0 ? '向上' : '向下')), 570, 104, { align: 'left', color: COL.text, size: 15 });
+    txt(ctx, '速度', 500, 136, { align: 'left', color: COL.v, size: 15 }); txt(ctx, (Math.abs(v) < 0.05 ? '0' : Math.abs(v).toFixed(1) + ' m/s ' + (v > 0 ? '向上' : '向下')), 570, 136, { align: 'left', color: COL.text, size: 15 });
+    ctx.save(); ctx.fillStyle = '#020617'; ctx.strokeStyle = sc; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(735, 26, 150, 120, 12); ctx.fill(); ctx.stroke(); ctx.restore();
+    txt(ctx, '讀數', 810, 46, { color: COL.dim, size: 13 }); txt(ctx, kg.toFixed(1) + ' kg', 810, 84, { color: sc, size: 28 }); txt(ctx, st, 810, 124, { color: sc, size: 16 });
+    // 曲線圖
+    const g = GR, ty = k => g.y0 - k / g.max * (g.y0 - g.y1);
+    ctx.fillStyle = '#020617'; ctx.fillRect(g.x0, g.y1 - 12, g.x1 - g.x0, g.y0 - g.y1 + 12);
+    line(ctx, g.x0, g.y0, g.x1, g.y0, '#475569', 1.5); line(ctx, g.x0, g.y0, g.x0, g.y1 - 12, '#475569', 1.5);
+    line(ctx, g.x0, ty(50), g.x1, ty(50), '#64748b', 1, [5, 5]); txt(ctx, '50', g.x0 - 6, ty(50), { align: 'right', color: COL.dim, size: 11 });
+    txt(ctx, '0', g.x0 - 6, g.y0, { align: 'right', color: COL.dim, size: 11 }); txt(ctx, '70', g.x0 - 6, ty(70), { align: 'right', color: COL.dim, size: 11 });
+    txt(ctx, '讀數（kg）對時間', g.x0 + 8, g.y1 - 26, { align: 'left', color: COL.text, size: 13 });
+    txt(ctx, '時間 →', g.x1, g.y0 + 14, { align: 'right', color: COL.dim, size: 11 });
+    const pts = hist.map(p => ({ x: g.x1 - (t - p.t) / g.span * (g.x1 - g.x0), y: ty(Math.min(g.max, p.kg)) })).filter(p => p.x >= g.x0);
+    polyline(ctx, pts, '#4ade80', 2.5);
+    txt(ctx, '電梯內部（側面看）', 20, 22, { align: 'left', color: COL.dim, size: 13 });
+  }
+  setMode('rest');
+  register([c], dt => {
+    a = accOf();
+    v += a * dt; y += v * dt; t += dt;
+    if (mode === 'up' && v >= 6) { v = 6; const keep = note; setMode('cruise', null, true); note = keep || '（速度到 6 m/s 後自動改成等速）'; }
+    if (mode === 'brake' && v <= 0) { v = 0; setMode('rest', null, true); note = '（減速到停下來了，就停在這裡）'; }
+    sampleT += dt; if (sampleT > 0.05) { sampleT = 0; hist.push({ t, kg: Math.max(0, MASS * (G + a)) / G }); if (hist.length > 400) hist.shift(); }
+    cap.innerHTML = MODES[mode] + ' ' + note;
+    draw();
+  });
+})();
+
+/* ================= 第 3 站 ①：海綿 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-sponge');
+  const NL = 4, H0 = 62, BX = 200, BW = 170, GROUND = 340;
+  let mode = 'stand', p = 0, off = 0, v = 0;   // p：0＝站著被壓，1＝完全放鬆
+  const cap = $('sponge-cap');
+  const CAPS = {
+    stand: '站在地上：每一層都要撐住<strong>上面所有的層</strong>，最底下那層被壓得最扁（像腳底）。綠色箭頭＝下面那層撐住上面的力，越下面越大。',
+    fall: '自由落下：每一層都掉得一樣快，<strong>沒有誰需要撐誰</strong>，綠色箭頭全部消失，海綿恢復原狀。紅色重力還在，每一層都一樣長！'
+  };
+  document.querySelectorAll('[data-sponge]').forEach(b => b.onclick = () => { mode = b.dataset.sponge; selectIn('[data-sponge]', b); cap.innerHTML = CAPS[mode]; if (mode === 'stand') { off = 0; v = 0; } });
+  cap.innerHTML = CAPS.stand;
+  register([c], dt => {
+    p += ((mode === 'fall' ? 1 : 0) - p) * Math.min(1, dt * 5);
+    if (mode === 'fall') { v += 300 * dt; off += v * dt; if (off > 2000) { off = 0; v = 120; } }
+    ctx.clearRect(0, 0, W, H);
+    if (mode === 'stand' || p < 0.5) { ctx.fillStyle = '#3f3f46'; ctx.fillRect(40, GROUND, 480, 30); txt(ctx, '地面', 70, GROUND + 15, { color: '#a1a1aa', size: 13 }); }
+    else { for (let k = 0; k < 6; k++) { const yy = ((k * 80 - off) % 480 + 480) % 480 - 40; line(ctx, 60, yy, 80, yy, '#334155', 2); line(ctx, 490, yy, 510, yy, '#334155', 2); } txt(ctx, '↓ 一起往下掉', 285, 24, { color: '#f9a8d4', size: 14 }); }
+    let yb = GROUND;
+    const tops = [];
+    for (let i = 0; i < NL; i++) {
+      const load = NL - i - 0.5, h = H0 * (1 - 0.16 * load * (1 - p));
+      const y0 = yb - h;
+      ctx.fillStyle = ['#ca8a04', '#d97706', '#eab308', '#facc15'][i]; ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.roundRect(BX, y0, BW, h, 8); ctx.fill(); ctx.globalAlpha = 1;
+      for (let k = 0; k < 5; k++) dot(ctx, BX + 22 + k * 32, y0 + h / 2, Math.max(2, h * 0.08), '#00000033');
+      arrow(ctx, BX + BW + 22, y0 + h / 2, BX + BW + 22, y0 + h / 2 + 30, { color: COL.g, w: 3, head: 9 });
+      tops.push({ y0, h, load });
+      yb = y0;
+    }
+    txt(ctx, '重力', BX + BW + 50, tops[NL - 1].y0 + tops[NL - 1].h / 2 + 14, { color: COL.g, size: 13 });
+    // 支撐力：地面撐最下層、每層撐上一層
+    for (let i = 0; i < NL; i++) {
+      const supp = (NL - i) * (1 - p), y = i === 0 ? GROUND : tops[i - 1].y0;
+      if (supp > 0.05) arrow(ctx, BX - 16 - i * 20, y, BX - 16 - i * 20, y - supp * 18, { color: COL.n, w: 4, head: 9 });
+    }
+    if (p < 0.5) txt(ctx, '撐住上面的力', BX - 60, tops[NL - 1].y0 - 18, { color: COL.n, size: 13 });
+    // 右側：感覺清單
+    const items = [['腳底被地板頂', 1], ['膝蓋被上半身壓', 0.75], ['肩膀被手臂的重量拉扯', 0.5], ['胃被下面的器官撐住', 0.35]];
+    txt(ctx, '你身上的「重量感」', 700, 50, { color: COL.text, size: 16 });
+    items.forEach(([s, k], i) => {
+      const on = (1 - p) > 0.5, yy = 100 + i * 52;
+      txt(ctx, on ? '✔' : '✘', 590, yy, { color: on ? COL.n : '#f472b6', size: 18 });
+      txt(ctx, s, 612, yy, { align: 'left', color: on ? COL.text : COL.dim, size: 15 });
+      ctx.fillStyle = COL.n; ctx.globalAlpha = 0.6; ctx.fillRect(612, yy + 14, 200 * k * (1 - p), 5); ctx.globalAlpha = 1;
+    });
+    txt(ctx, p > 0.5 ? '全部消失 → 感覺不到「重」' : '這些擠壓加起來＝你覺得的「重」', 700, 320, { color: p > 0.5 ? '#f9a8d4' : COL.n, size: 14 });
+  });
+})();
+
+/* ================= 第 3 站 ②：寶特瓶噴水 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-bottle');
+  const SLOW = 0.4, GPX = 900;   // 畫面上的 g（像素/秒²），再用慢動作播放
+  const BXc = 250, BW = 90, BH = 210, HOLES = [0.35, 0.7];   // 洞的位置（從上往下的比例）
+  const BUCKET = { x0: 130, x1: 760, top: 382, bot: 452 };
+  let by = 70, bv = 0, state = 'hold', level = 0.1, drops = [], spawn = 0, tAfter = 0;
+  const cap = $('bottle-cap');
+  const CAPS = {
+    hold: '手拿著瓶子：上面的水壓著下面的水，水被擠出小洞。<strong>下面的洞比較深，水壓比較大，水衝出洞口的速度比較快</strong>。',
+    fall: '放手了！瓶子和水<strong>一起自由落下</strong>，上面的水不再壓下面的水，<strong>水柱立刻停了</strong>。（已經噴出去的水會一邊往前飛、一邊往下掉；從瓶子看，它們是等速遠離）',
+    land: '瓶子掉進桶子停下來，桶底又把它撐住，水壓回來，水又開始噴了。按「重新拿好」再試一次。'
+  };
+  $('bottle-drop').onclick = () => { if (state === 'hold') { state = 'fall'; bv = 0; tAfter = 0; $('bottle-drop').disabled = true; } };
+  $('bottle-reset').onclick = () => { state = 'hold'; by = 70; bv = 0; level = 0.1; drops = []; $('bottle-drop').disabled = false; };
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // 桶子
+    ctx.fillStyle = '#1e3a5f88'; ctx.fillRect(BUCKET.x0, BUCKET.top + 30, BUCKET.x1 - BUCKET.x0, BUCKET.bot - BUCKET.top - 30);
+    ctx.save(); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(BUCKET.x0, BUCKET.top); ctx.lineTo(BUCKET.x0 + 8, BUCKET.bot); ctx.lineTo(BUCKET.x1 - 8, BUCKET.bot); ctx.lineTo(BUCKET.x1, BUCKET.top); ctx.stroke(); ctx.restore();
+    txt(ctx, '水桶', BUCKET.x1 - 40, BUCKET.bot - 14, { color: '#94a3b8', size: 13 });
+    // 手
+    if (state === 'hold') { line(ctx, BXc, 0, BXc, by - 8, '#fde68a', 6); dot(ctx, BXc, by - 4, 14, '#fde68a'); txt(ctx, '手', BXc, by - 4, { color: '#78350f', size: 12 }); }
+    else { line(ctx, BXc, 0, BXc, 54, '#fde68a', 6); dot(ctx, BXc, 58, 14, '#fde68a'); txt(ctx, '放手！', BXc + 50, 58, { color: '#fde68a', size: 13 }); }
+    // 水滴
+    drops.forEach(d => dot(ctx, d.x, d.y, 3.2, '#38bdf8'));
+    // 瓶子與水
+    const x0 = BXc - BW / 2, wy = by + BH * level;
+    ctx.fillStyle = '#0ea5e955'; ctx.fillRect(x0 + 3, wy, BW - 6, by + BH - wy - 3);
+    ctx.save(); ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x0, by, BW, BH, 12); ctx.stroke(); ctx.restore();
+    HOLES.forEach(h => dot(ctx, x0 + BW, by + BH * h, 4, '#020617', '#cbd5e1'));
+    if (state === 'fall') arrow(ctx, x0 - 30, by + BH / 2, x0 - 30, by + BH / 2 + 60, { color: COL.a, w: 4, label: 'g', lo: 14, size: 14 });
+    txt(ctx, '慢動作播放', 20, 24, { align: 'left', color: COL.dim, size: 13 });
+    // 右側說明框
+    const pr = state === 'fall' ? '0' : '有';
+    ctx.save(); ctx.fillStyle = '#020617'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(560, 60, 300, 140, 12); ctx.fill(); ctx.stroke(); ctx.restore();
+    txt(ctx, state === 'hold' ? '拿著：水壓 有' : state === 'fall' ? '自由落下：水壓 ＝ 0' : '落進桶子：水壓 又有了', 710, 100, { color: state === 'fall' ? '#f472b6' : '#7dd3fc', size: 17 });
+    txt(ctx, state === 'fall' ? '水不再被擠出洞口' : '水被擠出洞口', 710, 140, { color: COL.text, size: 15 });
+    txt(ctx, '（洞口的水壓 ' + pr + '）', 710, 172, { color: COL.dim, size: 13, bold: false });
+  }
+  register([c], dt => {
+    const h = dt * SLOW;
+    if (state === 'fall') { bv += GPX * h; by += bv * h; tAfter += h; if (by + BH >= BUCKET.bot - 4) { by = BUCKET.bot - 4 - BH; state = 'land'; } }
+    // 只有「有東西撐著瓶子」時水才有壓力、才會噴
+    if (state !== 'fall' && level < 0.75) {
+      spawn -= h;
+      while (spawn <= 0) {
+        spawn += 0.012;
+        HOLES.forEach(f => {
+          const depth = BH * (f - level); if (depth <= 0) return;
+          const sp = Math.sqrt(2 * GPX * depth) * 0.75;
+          drops.push({ x: BXc + BW / 2 + 3, y: by + BH * f + (Math.random() - 0.5) * 2, vx: sp * (0.95 + Math.random() * 0.1), vy: 0 });
+        });
+      }
+      level += h * 0.004;
+    }
+    drops.forEach(d => { d.vy += GPX * h; d.x += d.vx * h; d.y += d.vy * h; });
+    drops = drops.filter(d => d.y < BUCKET.bot - 6 && d.x < W + 10 && !(d.y > BUCKET.top + 30 && d.x > BUCKET.x0 && d.x < BUCKET.x1));
+    if (drops.length > 900) drops.splice(0, drops.length - 900);
+    cap.innerHTML = CAPS[state];
+    draw();
+  });
+})();
+
+/* ================= 第 4 站：三個情境對照 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-compare');
+  let t = 0;
+  const S = [
+    { x: 150, title: '站在地上', g: 1, n: 1, kg: '50.0' },
+    { x: 450, title: '纜繩斷掉的電梯', g: 1, n: 0, kg: '0.0' },
+    { x: 750, title: '太空站裡', g: 0.885, n: 0, kg: '0.0' }
+  ];
+  register([c], dt => {
+    t += dt;
+    ctx.clearRect(0, 0, W, H);
+    line(ctx, 300, 20, 300, H - 20, '#1e293b', 1.5); line(ctx, 600, 20, 600, H - 20, '#1e293b', 1.5);
+    S.forEach((s, i) => {
+      txt(ctx, s.title, s.x, 28, { color: COL.text, size: 16 });
+      const bob = i === 2 ? Math.sin(t * 1.5) * 6 : 0, foot = 250 + bob - (i === 2 ? 30 : 0);
+      if (i < 2) { ctx.fillStyle = '#334155'; ctx.fillRect(s.x - 60, 252, 120, 14); }
+      if (i === 1) { ctx.save(); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.strokeRect(s.x - 95, 60, 190, 210); ctx.restore(); txt(ctx, '↓ 整台一起往下掉', s.x, 48, { color: '#f9a8d4', size: 12 }); }
+      if (i === 2) { ctx.save(); ctx.strokeStyle = '#475569'; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); ctx.strokeRect(s.x - 110, 55, 220, 215); ctx.restore(); }
+      if (i === 2) { ctx.save(); ctx.translate(s.x, 170 + bob); ctx.rotate(0.35); ctx.translate(-s.x, -(170 + bob)); }
+      const P = person(ctx, s.x, foot, 140, { arm: i === 2 ? 'float' : 'down' });
+      if (i === 2) ctx.restore();
+      arrow(ctx, s.x + 34, 160, s.x + 34, 160 + 80 * s.g, { color: COL.g, w: 5, label: i === 2 ? '重力 88.5%' : '重力', lo: 16, size: 13 });
+      if (s.n) arrow(ctx, s.x - 34, 252, s.x - 34, 172, { color: COL.n, w: 5, label: '支撐力', lo: 14, size: 13 });
+      else txt(ctx, '支撐力 0', s.x - 60, 150, { color: COL.n, size: 13 });
+      txt(ctx, '讀數 ' + s.kg + ' kg', s.x, 300, { color: s.n ? '#4ade80' : '#f472b6', size: 16 });
+    });
+  });
+})();
+
+/* ================= 第 5 站：從電梯到太空站 ================= */
+(function () {
+  const { c, ctx, W, H } = setup('cv-orbit');
+  const O = { x: 450, y: 268 }, RE = 150, R0 = 1.1, VC = Math.sqrt(1 / R0), KMS = 7.5, SPEED = 1.2;
+  const stars = makeStars(90, W, H, 5);
+  let s = 0.5, shot = null, old = [];
+  const COLS = ['#fbbf24', '#34d399', '#38bdf8', '#f472b6', '#a78bfa'];
+  let colI = 0;
+  const cap = $('orb-cap');
+  function setS(v) { s = v; $('orb-v').value = v; $('orb-v-val').textContent = (v * KMS).toFixed(1) + ' km/s'; }
+  setS(0.5);
+  cap.innerHTML = '電梯放在塔頂時，塔撐著它，裡面的人讀數不是 0。選好速度後按「▶ 推出去」。';
+  $('orb-v').oninput = e => setS(+e.target.value);
+  document.querySelectorAll('[data-orb]').forEach(b => b.onclick = () => { setS(+b.dataset.orb); fire(); });
+  $('orb-go').onclick = fire;
+  $('orb-clear').onclick = () => { old = []; };
+  function fire() {
+    if (shot) old.push({ trail: shot.trail, col: shot.col });
+    if (old.length > 4) old.shift();
+    shot = { x: 0, y: R0, vx: s * VC, vy: 0, trail: [{ x: 0, y: R0 }], col: COLS[colI++ % COLS.length], done: false, ang: 0, lastA: Math.PI / 2 };
+    cap.innerHTML = `以 ${(s * KMS).toFixed(1)} km/s 推出去……電梯一離開塔，就只受重力：<strong class="text-pink-300">裡面完全失重</strong>。`;
+  }
+  const toC = p => ({ x: O.x + p.x * RE, y: O.y - p.y * RE });
+  function step(h) {
+    const q = shot, r = Math.hypot(q.x, q.y), a = -1 / (r * r * r);
+    q.vx += a * q.x * h / 2; q.vy += a * q.y * h / 2;
+    q.x += q.vx * h; q.y += q.vy * h;
+    const r2 = Math.hypot(q.x, q.y), a2 = -1 / (r2 * r2 * r2);
+    q.vx += a2 * q.x * h / 2; q.vy += a2 * q.y * h / 2;
+  }
+  function liftBox(x, y, floating, ang) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = '#111827'; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(-11, -11, 22, 22); ctx.fill(); ctx.stroke();
+    dot(ctx, 0, floating ? -2 : 3, 3.5, '#fde68a');
+    ctx.restore();
+  }
+  register([c], dt => {
+    if (shot && !shot.done) {
+      const N = 40, h = dt * SPEED / N;
+      for (let i = 0; i < N && !shot.done; i++) {
+        step(h);
+        const r = Math.hypot(shot.x, shot.y), A = Math.atan2(shot.y, shot.x);
+        let dA = A - shot.lastA; if (dA > Math.PI) dA -= 2 * Math.PI; if (dA < -Math.PI) dA += 2 * Math.PI;
+        shot.ang += dA; shot.lastA = A;
+        if (r <= 1) { shot.done = true; shot.hit = true;
+          cap.innerHTML = s < 0.02 ? '💥 沒有往旁邊推，電梯就直直掉下去。<strong>一路上裡面都是完全失重</strong>，直到撞地面那一刻。'
+            : `💥 落地！${(s * KMS).toFixed(1)} km/s 還不夠快，地面來不及「彎下去」，電梯還是掉到地上。但<strong>落地前一路都是完全失重</strong>，路線是一段彎曲的軌跡（其實是橢圓的一部分，離地面近、速度慢時就像拋物線）。`; }
+        else if (Math.abs(shot.ang) >= 2 * Math.PI) { shot.done = true;
+          cap.innerHTML = Math.abs(s - 1) < 0.015 ? '🌍 繞了一整圈回到塔頂！<strong>它一直在掉，卻永遠掉不到地面</strong>，這就是太空站。裡面的人一直完全失重，但重力一直都在（紅色箭頭）。'
+            : '🌍 繞了一圈，路線是橢圓。不管圓或橢圓，裡面一直都是完全失重。'; }
+      }
+      if (shot.trail.length < 6000) shot.trail.push({ x: shot.x, y: shot.y });
+    }
+    ctx.clearRect(0, 0, W, H);
+    drawStars(ctx, stars);
+    old.forEach(o => polyline(ctx, o.trail.map(toC), o.col, 2, null, 0.35));
+    earth(ctx, O.x, O.y, RE);
+    ctx.fillStyle = '#78716c'; ctx.fillRect(O.x - 5, O.y - R0 * RE + 10, 10, (R0 - 1) * RE - 8);
+    txt(ctx, '超高的塔（高度有放大）', O.x + 18, O.y - R0 * RE + 6, { align: 'left', color: COL.dim, size: 12 });
+    if (shot) {
+      polyline(ctx, shot.trail.map(toC), shot.col, 3);
+      const p = toC(shot), r = Math.hypot(shot.x, shot.y);
+      const ang = Math.atan2(shot.x, shot.y);
+      liftBox(p.x, p.y, !shot.hit || !shot.done, ang);
+      if (!shot.done) {
+        arrow(ctx, p.x, p.y, p.x - shot.x / r * 46, p.y + shot.y / r * 46, { color: COL.g, w: 3, label: '重力', lo: 14, size: 12 });
+        txt(ctx, '讀數 0', p.x + 34, p.y - 22, { color: '#f472b6', size: 13 });
+      }
+    } else {
+      liftBox(O.x, O.y - R0 * RE - 11, false, 0);
+      txt(ctx, '塔撐著：讀數不是 0', O.x + 20, O.y - R0 * RE - 30, { align: 'left', color: '#4ade80', size: 12 });
+    }
+    txt(ctx, '把纜繩斷掉的電梯，從塔頂往旁邊推出去', 20, 24, { align: 'left', color: COL.dim, size: 14 });
+  });
+})();
+
+/* ================= 第 6 站：小測驗 ================= */
+(function () {
+  const Q = [
+    { q: '你站在浴室的體重計上，體重計真正量到的是哪一個力？',
+      o: ['地球拉你的重力', '你壓體重計的力（大小等於體重計推你的力）', '你的質量', '空氣壓你的力'], a: 1,
+      e: '體重計只感覺得到「被壓多大力」。你壓它、它推你，是第三定律的一對力，一樣大。靜止時這個力剛好等於重力，但兩者不是同一個力。' },
+    { q: '電梯從 1 樓<strong>開始加速上升</strong>的那幾秒，小明覺得自己變重了。下列說明何者正確？',
+      o: ['地球拉小明的重力變大了', '重力不變，是地板推小明的支撐力變大了', '小明的質量變大了', '電梯裡的空氣變重了'], a: 1,
+      e: '要讓小明跟著加速往上，地板必須推得比重力還大（超重）。重力只跟小明和地球有關，不會因為電梯加速而改變。' },
+    { q: '電梯以<strong>固定速度</strong>往上升時，體重計讀數和靜止時比較？',
+      o: ['比較大', '一樣', '比較小', '變成 0'], a: 1,
+      e: '等速＝加速度為 0，合力為 0，支撐力剛好等於重力，讀數跟靜止時一樣。決定讀數的是加速度，不是速度。' },
+    { q: '電梯<strong>往上走、快到 10 樓時減速</strong>，這時體重計讀數會？',
+      o: ['變大，因為還在往上走', '不變', '變小，因為加速度向下', '變成 0'], a: 2,
+      e: '往上走卻在減速，代表加速度向下。加速度向下時支撐力小於重力，讀數變小（失重）。' },
+    { q: '國際太空站裡的太空人會飄浮，最主要的原因是？',
+      o: ['太空中沒有重力', '太空站離地球很遠，重力小到可以不計', '太空人和太空站一起自由落下（繞地球），沒有東西撐著他', '太空站裡沒有空氣'], a: 2,
+      e: '太空站高度約 400 km，重力仍有地面的約 88.5%。太空人飄浮是因為他和太空站掉得一樣快，地板不必撐他，視重＝0。' },
+    { q: '寶特瓶側面開了小洞、裝滿水，水正從洞口噴出。若讓瓶子<strong>自由落下</strong>（忽略空氣阻力），落下途中洞口會？',
+      o: ['噴得更遠', '照常噴水', '不再噴水', '水從洞口倒吸進去'], a: 2,
+      e: '瓶子和水一起自由落下，上面的水不再壓下面的水，水壓消失，水就不會被擠出洞口。' },
+    { q: '⭐ 挑戰：質量 50 kg 的小華站在電梯裡的體重計上，讀數是 40 kg。關於電梯的運動，何者正確？',
+      o: ['加速度 1.96 m/s² 向上，一定在往上走', '加速度 1.96 m/s² 向下，可能是上升中減速，也可能是加速下降', '加速度 1.96 m/s² 向下，一定在往下走', '電梯一定是靜止的'], a: 1,
+      e: '支撐力 N＝40×9.8＝392 N，重力 490 N。取向上為正：392－490＝50×a，a＝－1.96 m/s²（向下）。只知道加速度方向，不能決定電梯往哪裡走。' },
+    { q: '⭐ 挑戰：地球半徑約 6400 km。高度 400 km 的太空站，太空人受到的重力大約是地面的多少？',
+      o: ['0', '約 10%', '約 89%', '比地面大'], a: 2,
+      e: '重力與到地心距離的平方成反比：(6400/6800)² ≈ 0.89，約 89%（用 6371 km 算則約 88.5%）。所以「太空沒有重力」是錯的。' }
+  ];
+  const box = $('quiz'); let done = 0, right = 0;
+  Q.forEach((it, i) => {
+    const d = document.createElement('div');
+    d.className = 'p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3';
+    d.innerHTML = `<div class="font-bold">${i + 1}. ${it.q}</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${it.o.map((o, j) => `<button class="btn !justify-start text-left" data-j="${j}">(${'ABCD'[j]}) ${o}</button>`).join('')}</div><div class="fb text-sm text-slate-300"></div>`;
+    let answered = false;
+    d.querySelectorAll('[data-j]').forEach(b => b.onclick = () => {
+      if (answered) return; answered = true; done++;
+      const j = +b.dataset.j, ok = j === it.a; if (ok) right++;
+      d.querySelectorAll('[data-j]').forEach(x => { if (+x.dataset.j === it.a) x.classList.add('right'); });
+      if (!ok) b.classList.add('wrong');
+      d.querySelector('.fb').innerHTML = (ok ? '✅ 正確！' : `❌ 正確答案是 (${'ABCD'[it.a]})。`) + it.e;
+      $('quiz-score').textContent = done === Q.length ? `全部完成：答對 ${right} / ${Q.length} 題 ${right === Q.length ? '🎉 全對！' : '，錯的題目回到對應的站再看一次動畫。'}` : `已作答 ${done} / ${Q.length}`;
+    });
+    box.appendChild(d);
+  });
+  $('quiz-score').textContent = `已作答 0 / ${Q.length}`;
+})();
+
+if (window.lucide) lucide.createIcons();
+</script>
+</body>
+</html>
